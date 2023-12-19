@@ -1,21 +1,18 @@
+// app.c
 #ifndef UNICODE
 #define UNICODE
 #endif 
 #include <windows.h>
 #include <stdio.h>
 #include "../include/server.h"
+#include "../include/app.h"
 
-// Variável global para armazenar o estado do botão
+// Global variable to store the button state
 BOOL isButtonOn = FALSE;
 
-// Protótipo da função de janela
-LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-
-DWORD WINAPI ServerThread(LPVOID lpParam);
-
-// Função principal
+// Main function
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
-    // Registrando a classe da janela
+    // Register window class
     WNDCLASS wc = { 0 };
     wc.lpfnWndProc = WindowProc;
     wc.hInstance = hInstance;
@@ -24,56 +21,56 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     RegisterClass(&wc);
 
-    // Criando a janela
+    // Creating window
     HWND hwnd = CreateWindowEx(
         0,
         L"SimpleWindowClass",     // Class name registered
         L"Super Application",     // Title of window
         WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX & ~WS_SIZEBOX, // Window style (without maximizing and resizing)
-        CW_USEDEFAULT,            // Posição X da janela
-        CW_USEDEFAULT,            // Posição Y da janela
-        400,                      // Largura da janela
-        200,                      // Altura da janela
-        0,                        // HWND do pai (nenhum neste caso)
-        0,                        // Handle do menu (nenhum neste caso)
-        hInstance,                // Handle da instância da aplicação
-        0                         // Parâmetro de criação (nenhum neste caso)
+        CW_USEDEFAULT,            // Window X position
+        CW_USEDEFAULT,            // Window Y position
+        400,                      // Window width
+        200,                      // Window height
+        0,                        // Father's HWND (none in this case)
+        0,                        // Menu handle (none in this case)
+        hInstance,                // Application instance handle
+        0                         // Creation parameter (none in this case)
     );
 
-    // Criando o botão Ligar
+    // <BTN - ON>
     HWND buttonOn = CreateWindow(
-        L"BUTTON",                // Classe do controle
-        L"Ligar",                 // Texto do botão
-        WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, // Estilo do botão
-        100,                      // Posição X do botão
-        50,                       // Posição Y do botão
-        100,                      // Largura do botão
-        30,                       // Altura do botão
-        hwnd,                     // Handle da janela pai
-        (HMENU)1,                 // Identificador do botão
-        hInstance,                // Handle da instância da aplicação
-        0                         // Parâmetro de criação (nenhum neste caso)
+        L"BUTTON",                // Control class
+        L"Start server",          // Button text
+        WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, // Button style
+        100,                      // X position of the button
+        50,                       // Button Y position
+        100,                      // Button width
+        30,                       // Button height
+        hwnd,                     // Parent window handle
+        (HMENU)1,                 // Button identifier
+        hInstance,                // Application instance handle
+        0                         // Creation parameter (none in this case)
     );
 
-    // Criando o botão Desligar
+    // <BTN - OFF>
     HWND buttonOff = CreateWindow(
-        L"BUTTON",                // Classe do controle
-        L"Desligar",              // Texto do botão
-        WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, // Estilo do botão
-        210,                      // Posição X do botão
-        50,                       // Posição Y do botão
-        100,                      // Largura do botão
-        30,                       // Altura do botão
-        hwnd,                     // Handle da janela pai
-        (HMENU)2,                 // Identificador do botão
-        hInstance,                // Handle da instância da aplicação
-        0                         // Parâmetro de criação (nenhum neste caso)
+        L"BUTTON",                // Control class
+        L"Stop",                  // Button text
+        WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, // Button style
+        210,                      // X position of the button
+        50,                       // Button Y position
+        100,                      // Button width
+        30,                       // Button height
+        hwnd,                     // Parent window handle
+        (HMENU)2,                 // Button identifier
+        hInstance,                // Application instance handle
+        0                         // Creation parameter (none in this case)
     );
 
-    // Exibindo a janela
+    // Show window
     ShowWindow(hwnd, nCmdShow);
 
-    // Loop de mensagens
+    // Message loop
     MSG msg = { 0 };
     while (GetMessage(&msg, NULL, 0, 0)) {
         TranslateMessage(&msg);
@@ -85,13 +82,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     return 0;
 }
 
-// Função de procedimento da janela
+// Window procedure function
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     switch (uMsg) {
     case WM_COMMAND:
-        // Verificar qual botão foi pressionado
+        // Check which button was pressed
         switch (LOWORD(wParam)) {
-        case 1: // Botão Ligar
+        case 1: // On button
             isButtonOn = TRUE;
             StopServer();  
             
@@ -104,7 +101,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 
             InvalidateRect(hwnd, NULL, TRUE); // Request window repainting
             break;
-        case 2: // Botão Desligar
+        case 2: // Off button
             isButtonOn = FALSE;
             InvalidateRect(hwnd, NULL, TRUE); // Request window repainting
             StopServer(); // Stop server
@@ -138,11 +135,10 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 
         // Adjust the position and the size of buttons
         MoveWindow(GetDlgItem(hwnd, 1), 100, 50, 100, 30, TRUE);   // On
-        MoveWindow(GetDlgItem(hwnd, 2), 210, 50, 100, 30, TRUE);  // Off
+        MoveWindow(GetDlgItem(hwnd, 2), 210, 50, 100, 30, TRUE);   // Off
 
         return 0;
     }
     }
-
     return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
