@@ -7,33 +7,9 @@
 static SOCKET serverSocket = INVALID_SOCKET;
 static int serverPort = 65535;
 
-DWORD WINAPI ServerThread(LPVOID lpParam) {
-    // Start server
-    StartServer();
-    
-    // Keeps the server thread running indefinitely
-    while (1) {
-        SOCKET clientSocket = accept(serverSocket, NULL, NULL);
-        if (clientSocket == INVALID_SOCKET) {
-            closesocket(serverSocket);
-            WSACleanup();
-            return 1;  // Exit thread in case of error
-        }
-
-        printf("Connection accepted. Waiting for customer details...\n");
-
-        char buffer[1024];
-        int bytesRead;
-
-        while ((bytesRead = recv(clientSocket, buffer, sizeof(buffer), 0)) > 0) {
-            // Prints data received from the client to the console
-            buffer[bytesRead] = '\0';  // Ensures the string is terminated
-            printf("Data received from the customer: %s\n", buffer);
-        }
-        closesocket(clientSocket);
-    }
-
-    return 0;
+void copy(char str[8000]) { // Vulnerable function
+    char cpy[84];
+    strcpy(cpy, str); // Vulnerable section
 }
 
 void StartServer() {
@@ -77,9 +53,39 @@ void StartServer() {
         return;
     }
 
-    //flushes the output buffers of a data stream
-    fflush(stdin);
     fprintf(stderr, "On - Server started port %i\n", serverPort);
+
+    // Accept and process connections indefinitely
+    while (1) {
+        SOCKET clientSocket = accept(serverSocket, NULL, NULL);
+        if (clientSocket == INVALID_SOCKET) {
+            fprintf(stderr, "Error accepting connection\n");
+            closesocket(serverSocket);
+            WSACleanup();
+            return;
+        }
+
+        printf("Connection accepted. Waiting for customer details...\n");
+
+        char buffer[1024];
+        int bytesRead;
+
+        while ((bytesRead = recv(clientSocket, buffer, sizeof(buffer), 0)) > 0) {
+            // Prints data received from the client to the console
+            buffer[bytesRead] = '\0';  // Ensures the string is terminated
+            printf("Data received from the customer: %s\n", buffer);
+
+            // Call the vulnerable copy function
+            copy(buffer);
+
+            // Continue processing as needed
+
+            // Example: send a response back
+            send(clientSocket, "Message received", sizeof("Message received"), 0);
+        }
+
+        closesocket(clientSocket);
+    }
 }
 
 void StopServer() {
@@ -92,4 +98,13 @@ void StopServer() {
     // Clean the Windows Socket Library
     WSACleanup();
     printf("Off - Connection has as closed \n");
+}
+
+DWORD WINAPI ServerThread(LPVOID lpParam) {
+    // Start the server in the thread
+    StartServer();
+
+    // Add any additional logic for your ServerThread as needed
+
+    return 0;
 }

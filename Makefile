@@ -7,10 +7,10 @@ CC = gcc
 # Flags de compilação
 CFLAGS_COMMON = -Wall -Wextra
 CFLAGS_DEBUG = -g -O0
-CFLAGS_RELEASE = -O2 -mwindows
+CFLAGS_RELEASE = -O2 -mwindows 
 
 # Bibliotecas
-LIBS = -static-libgcc -static-libstdc++ -lmingwex -lgdi32 -lws2_32
+LIBS = -static-libgcc -static-libstdc++ -lmingwex -lgdi32 -lws2_32 -fno-stack-protector 
 
 # Diretórios
 SRC_DIR = src

@@ -1,0 +1,3 @@
+
+CHARS => 104
+No cannonicall adress => 0x0000020776A55120
